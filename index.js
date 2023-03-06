@@ -5,21 +5,33 @@ const app = express();
 const dotenv = require('dotenv').config();
 const PORT = process.env.PORT || 8080;
 const authRouter = require('./routes/authRoute');
+const productRouter = require('./routes/productRoute');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-
+//connect DB
 dbConnect();
 
 
+//morgan
+app.use(morgan('dev'));
 
+//body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//cookie parser
+app.use(cookieParser());
+
+
+
+
+//route init
 app.use('/api/user', authRouter);
+app.use('/api/product', productRouter);
 
 
+//Error handler
 app.use(notFound);
 app.use(errorHandler);
 
