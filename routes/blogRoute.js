@@ -6,13 +6,15 @@ const {
     getOneBlog,
     getAllBlogs,
     deleteBlog,
-    likeBlog
+    likeBlog,
+    disLikeBlog
 } = require('../controllers/blogController');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 
 
-router.put('/likes', authMiddleware, likeBlog);
 router.post('/', authMiddleware, isAdmin, createBlog);
+router.put('/likes', authMiddleware, likeBlog);
+router.put('/dislikes', authMiddleware, disLikeBlog);
 router.put('/:id', authMiddleware, isAdmin, updateOneBlog);
 router.get('/:id', getOneBlog);
 router.get('/', getAllBlogs);
