@@ -11,13 +11,12 @@ const {
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 
 
-
+router.put('/likes', authMiddleware, likeBlog);
 router.post('/', authMiddleware, isAdmin, createBlog);
 router.put('/:id', authMiddleware, isAdmin, updateOneBlog);
 router.get('/:id', getOneBlog);
 router.get('/', getAllBlogs);
 router.delete('/:id', authMiddleware, isAdmin, deleteBlog);
-router.put('/likes', authMiddleware, isAdmin, likeBlog);
 
 
 module.exports = router;
