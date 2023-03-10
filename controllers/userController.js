@@ -35,6 +35,8 @@ const createUser = asyncHandler(async (req, res) => {
 
 });
 
+
+//Login a user
 const loginUserCtrl = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     //check if user exists or not
@@ -68,6 +70,65 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 
 });
 
+
+// Admin login
+const loginAdmin = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    //check if user exists or not
+    const findAdmin = await User.findOne({ email });
+    if (findAdmin.role !== 'admin') throw new Error('Not Authorised');
+    if (findAdmin && await findAdmin.isPasswordMatched(password)) {
+
+        const refreshToken = await generateRefreshToken(findAdmin?._id);
+        const updateUser = await User.findByIdAndUpdate(
+            findAdmin.id,
+            {
+                refreshToken: refreshToken
+            },
+            { new: true }
+        );
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000,
+        });
+
+        res.json({
+            _id: findAdmin?._id,
+            firstname: findAdmin?.firstname,
+            lastname: findAdmin?.lastname,
+            email: findAdmin?.email,
+            mobile: findAdmin?.mobile,
+            token: generateToken(findAdmin?._id)
+        });
+    } else {
+        throw new Error('Invalid Credentials');
+    }
+
+});
+
+
+// Save User Address
+const saveAddress = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoDbId(_id);
+
+    try {
+
+        const updatedUser = await User.findByIdAndUpdate(
+            _id,
+            {
+                address: req?.body?.address,
+            },
+            { new: true }
+        );
+
+        res.json(updatedUser);
+
+    } catch (error) {
+        throw new Error(error);
+    }
+
+});
 
 
 //Get all users
@@ -307,8 +368,8 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
         const token = await user.createPasswordResetToken();
         await user.save();
         const resetURL = `Hi, please follow this link to reset Your Password. 
-This link is valid till 10 minutes from now.
- <a href='http://localhost:5000/api/user/reset-password/${token}'>Click here</>`
+        This link is valid till 10 minutes from now.
+         <a href='http://localhost:5000/api/user/reset-password/${token}'>Click here</>`
 
         const data = {
             to: email,
@@ -349,7 +410,23 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 });
 
-console.log('test');
+
+//Get wishlist
+const getWishlist = asyncHandler(async (req, res) => {
+
+    const { _id } = req.user;
+    try {
+
+        const findUser = await User.findById(_id).populate('wishlist');
+        res.json(findUser)
+
+    } catch (error) {
+
+        throw new Error(error);
+
+    }
+
+});
 
 module.exports = {
     createUser,
@@ -364,5 +441,8 @@ module.exports = {
     logout,
     updatePassword,
     forgotPasswordToken,
-    resetPassword
+    resetPassword,
+    loginAdmin,
+    getWishlist,
+    saveAddress,
 };
