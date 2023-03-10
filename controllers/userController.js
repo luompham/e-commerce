@@ -349,7 +349,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 });
 
-
+console.log('test');
 
 module.exports = {
     createUser,
