@@ -539,7 +539,7 @@ const applyCoupon = asyncHandler(async (req, res) => {
         orderBy: user._id
     }).populate('products.product');
 
-    console.log({ products })
+
 
     let totalAfterDiscount = (
         cartTotal -
@@ -575,11 +575,11 @@ const createOrder = asyncHandler(async (req, res) => {
 
         if (couponApplied && userCart.totalAfterDiscount) {
 
-            finalAmount = userCart.totalAfterDiscount * 100;
+            finalAmount = userCart.totalAfterDiscount;
 
         } else {
 
-            finalAmount = userCart.cartTotal * 100;
+            finalAmount = userCart.cartTotal;
 
         }
 
@@ -620,7 +620,55 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 
+//Get  Orders
+const getOrders = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoDbId(_id);
 
+    try {
+
+        const userOrders = await Order.findOne({ orderBy: _id })
+            .populate('products.product')
+            .exec();
+
+        res.json(userOrders);
+
+    } catch (error) {
+        throw new Error(error);
+    };
+
+
+});
+
+
+//Update order status
+const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const { id } = req.params;
+    validateMongoDbId(id);
+
+    try {
+
+        const updateOrderStatus = await Order.findByIdAndUpdate(
+            id,
+            {
+                orderStatus: status,
+                paymentIntent: {
+                    status: status,
+                },
+            },
+            {
+                new: true,
+            }
+        );
+
+        res.json(updateOrderStatus);
+
+    } catch (error) {
+        throw new Error(error);
+    };
+
+});
 
 module.exports = {
     createUser,
@@ -643,5 +691,7 @@ module.exports = {
     getUsercart,
     emptyCart,
     applyCoupon,
-    createOrder
+    createOrder,
+    getOrders,
+    updateOrderStatus
 };
